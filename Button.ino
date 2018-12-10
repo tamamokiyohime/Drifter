@@ -22,9 +22,9 @@ void button_action(){
 			Serial.println("Atlas EC \"Dry\" Calibration");
 			lcd.setCursor(1,3);
 			lcd.print("-Dry ");
-			
 			lcd.setCursor(0,1);
 			lcd.print("EC Dry Cal");
+//			event_write("Cal-EC Dry");
 			break;
 			
 			case 2:
@@ -35,6 +35,7 @@ void button_action(){
 			lcd.print("-Low ");
 			lcd.setCursor(0,1);
 			lcd.print("EC Low Cal 12.8k");
+//			event_write("Cal-EC Low");
 			break;
 			
 			case 3:
@@ -45,6 +46,7 @@ void button_action(){
 			lcd.print("-High");
 			lcd.setCursor(0,1);
 			lcd.print("EC High Cal 80k");
+//			event_write("Cal-EC High");
 			break;
 			
 			case 4:
@@ -55,6 +57,7 @@ void button_action(){
 			lcd.print("-Mid ");
 			lcd.setCursor(0,1);
 			lcd.print("pH7.0 Mid Cal");
+//			event_write("Cal-pH Mid");
 			break;
 			
 			case 5:
@@ -65,6 +68,7 @@ void button_action(){
 			lcd.print("-Low ");
 			lcd.setCursor(0,1);
 			lcd.print("pH4.0 Low Cal");
+//			event_write("Cal-pH Low");
 			break;
 			
 			case 6:
@@ -75,6 +79,7 @@ void button_action(){
 			lcd.print("-High");
 			lcd.setCursor(0,1);
 			lcd.print("pH10.0 High Cal");
+//			event_write("Cal-pH High");
 			break;
 			
 			case 7:
@@ -88,12 +93,12 @@ void button_action(){
 			lcd.setCursor(0,1);
 			lcd.print("K Cal to ");
 			lcd_qFprint(k_cal,2,9,1);
+//			event_write("Cal-k");
 			break;
 		}
-
-//		
 		delay(50);
-		btn_command = 0;
+		
 	}
+	btn_command = 0;
 }
 

@@ -61,6 +61,9 @@ void do_SD(){                      //序列埠輸出資料(日期、tsys01溫度
 		data_write_in(SAL_f,2);
 		data_write_in(GRAV_f,2);
 		data_write_in(pH,2);
+//		myFile.print(event_logger);
+//		cln_event_logger();
+//		myFile.print(",");
 		myFile.println();
 		myFile.close();
 	} else {

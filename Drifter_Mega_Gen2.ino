@@ -1,8 +1,8 @@
 /*
    Drifter Mega2560 Version
-   Last Modify 18/09/27
-    Adding:Buzzer
-   To Test:Buzzer
+   Last Modify 18/12/10
+    Adding:Watch Dog
+   To Test:Watch Dog
 */
 
 
@@ -18,6 +18,7 @@
 #include <Adafruit_MAX31856.h>
 #include <Button.h>
 #include <EEPROM.h>
+#include <Adafruit_SleepyDog.h>
 
 #define SERIAL_BAUD 9600          	//Baud Rate
 #define LCD_I2C_ADDRESS 0x27       	//LCD I2C Address
@@ -88,6 +89,9 @@ float pH;
 File myFile;
 char filename[] = "00000000.csv";
 boolean SD_alive = true;
+const int logger_size = 100;
+char event_logger[logger_size];
+int current_pos = 0;
 //SD Moudle Data Parameter END========================================================================
 
 //CO2 Data Parameter==================================================================================
@@ -228,6 +232,10 @@ byte RH_icon[8] = {
 //Buzzer Data Parameter END===============================================================================
 
 
+//Watch Dog============================
+int watchdogTimer = 1000;
+//Watch Dog End========================
+
 void setup() {
 	Wire.begin();
 	Serial.begin(4800);
@@ -266,6 +274,7 @@ void setup() {
 	m_tsys01.begin();
 
 	K_30_Serial.begin(9600);
+//	cln_event_logger();
 
 	lcd.init();
 {/*LCD Create Custom Char==============================================================*/
@@ -293,6 +302,9 @@ void setup() {
 	lcd.print(device_ID);
 	delay(5000);
 	lcd.clear();
+
+	/*Watch Dog Init*/
+	Watchdog.enable(watchdogTimer);
 	
     /*Start Checking BME280*/
     if (!bme280.init()) {
@@ -333,6 +345,10 @@ void setup() {
 }
 
 void loop() {
+{ /*Reset Watchdog Timer=======================================*/
+	Watchdog.reset();
+}
+
 { /*Call in Every Loop ====================================================================*/
     gps_new_get();					//GPS Function									 [GPS_DATA]
     button_action();				//Check weather button is pressed				 [Button]
