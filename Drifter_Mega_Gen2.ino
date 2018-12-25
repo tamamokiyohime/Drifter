@@ -24,6 +24,8 @@
 #define LCD_I2C_ADDRESS 0x27       	//LCD I2C Address
 #define initial_data 8888
 
+#define ESP_BAUD 115200
+
 
 /*========================Things You Should Change================================*/
 /**/#define interval 10000           	//Interval								/**/
@@ -233,13 +235,17 @@ byte RH_icon[8] = {
 
 
 //Watch Dog============================
-int watchdogTimer = 1000;
+int watchdogTimer = 5000;
 //Watch Dog End========================
+
+//ESP 8266=============================
+SoftwareSerial ESP8266(12,13);
 
 void setup() {
 	Wire.begin();
 	Serial.begin(4800);
 	ss.begin(4800);
+  ESP8266.begin(ESP_BAUD);
 	max.begin();
 	max.setThermocoupleType(MAX31856_TCTYPE_K);		//Set the type of Thermocouple
 	
@@ -371,6 +377,7 @@ void loop() {
       LCD_update_main();			//Update LCD Data								 [LCD]
       do_SD();						//Write Data into SD Card						 [SD_DATA]
       serial_print_data();			//Print Data Out to The Serial					 [SERIAL_PRINT]
+      upload_ESP();
     }
 }
 { /*Update By Interval of 1s ==============================================================*/
