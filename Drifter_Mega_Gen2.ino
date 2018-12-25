@@ -68,18 +68,18 @@ boolean connected;
 
 //Atlas Conductivity Data Parameter==================================================================
 HardwareSerial &Atlas_EC = Serial2;						//Atlas EC Using UART Port2
-String  inputstring  = "";								//a string to hold incoming data from the PC
+//String  inputstring  = "";								//a string to hold incoming data from the PC
 String  sensorstring = ""; 								//a string to hold the data from the Atlas Scientific product
-boolean input_string_complete  = false;					//have we received all the data from the PC
+//boolean input_string_complete  = false;					//have we received all the data from the PC
 boolean sensor_string_complete = false;					//have we received all the data from the Atlas Scientific product
 float EC_f , TDS_f, SAL_f, GRAV_f;
 //Atlas Conductivity Data Parameter END===============================================================
 
 //Atlas pH Data Parameter=============================================================================
 SoftwareSerial Atlas_pH(10, 11);						//Atlas pH Using pin 10,11
-String  inputstring_pH  = "";							//a string to hold incoming data from the PC
+//String  inputstring_pH  = "";							//a string to hold incoming data from the PC
 String  sensorstring_pH = "";							//a string to hold the data from the Atlas Scientific product
-boolean input_string_pH_complete  = false;				//have we received all the data from the PC
+//boolean input_string_pH_complete  = false;				//have we received all the data from the PC
 boolean sensor_string_pH_complete = false;				//have we received all the data from the Atlas Scientific product
 float pH;
 //Atlas pH Data Parameter END=========================================================================
@@ -264,11 +264,11 @@ void setup() {
 	pinMode(buzzerpin, OUTPUT);
 
 	Atlas_EC.begin(9600);                	            //set baud rate for the software serial port to 9600
-	inputstring.reserve(10);                            //set aside some bytes for receiving data from the PC
+	//inputstring.reserve(10);                            //set aside some bytes for receiving data from the PC
 	sensorstring.reserve(30);                           //set aside some bytes for receiving data from Atlas Scientific product
 
 	Atlas_pH.begin(9600);                               //set baud rate for the software serial port to 9600
-	inputstring_pH.reserve(10);                         //set aside some bytes for receiving data from the PC
+	//inputstring_pH.reserve(10);                         //set aside some bytes for receiving data from the PC
 	sensorstring_pH.reserve(30);                        //set aside some bytes for receiving data from Atlas Scientific product
 
 	m_tsys01.begin();

@@ -11,6 +11,6 @@ void measure_BME280(){
 	
 //  pressure = bme280.getPressure();
 //  humidity = bme280.getHumidity();
-  pressure_in_atm = pressure/101325.000;
+  pressure_in_atm = pressure/101325.00;
 }
 
