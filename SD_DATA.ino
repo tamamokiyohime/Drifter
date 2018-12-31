@@ -5,7 +5,6 @@ void SD_checking(){
 		SD_alive = false;
 	} else {
 	}
-//		Serial.println("Setup Complete");
 }
 
 
@@ -25,6 +24,7 @@ void do_SD(){                      //序列埠輸出資料(日期、tsys01溫度
 	}
 	myFile = SD.open(filename, FILE_WRITE);
 	if (myFile) {
+  
 		myFile.print(device_ID);
 		myFile.print(",");
 		myFile.print(year, DEC);
