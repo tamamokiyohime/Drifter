@@ -24,7 +24,7 @@ void LCD_update_main(){
     if(!SD_alive)		{	lcd.write(2);	}
     
 	lcd.setCursor(19,0);
-	if(GPS_check)		{	lcd.print("G");	}
+	if(GPS_check)		{	lcd.print("G");	GPS_check = false;}
 		else			{	lcd.print("-");	}
 }
 {/*Row 1*/

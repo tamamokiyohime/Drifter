@@ -4,7 +4,7 @@ void gps_new_get(){
   
 
   // For one second we parse GPS data and report some key values
-  for (unsigned long start = millis(); millis() - start < 100;)
+  //for (unsigned long start = millis(); millis() - start < 100;)
 //if(millis() - start >1000)
   {
     while (ss.available())
@@ -22,6 +22,9 @@ void gps_new_get(){
     alti = gps.f_altitude();
     gps_number = gps.satellites();
     GPS_check = true;
+    newData = false;
+  }else{
+    GPS_check = false;
   }
   
   gps.stats(&chars, &sentences, &failed);

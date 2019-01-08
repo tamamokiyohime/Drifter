@@ -20,10 +20,10 @@
 #include <EEPROM.h>
 #include <Adafruit_SleepyDog.h>
 
-#define SERIAL_BAUD 9600          	//Baud Rate
+#define SERIAL_BAUD 115200          	//Baud Rate
 #define LCD_I2C_ADDRESS 0x27       	//LCD I2C Address
 #define initial_data 8888
-
+#define GPS_SERIAL 9600
 #define ESP_BAUD 115200
 
 
@@ -226,7 +226,7 @@ byte RH_icon[8] = {
 
 
 //tone Data Parameter===================================================================================
-#define buzzerpin 8
+#define buzzerpin 44
 #define notice_freq 50
 #define notice_duri 100
 #define waring_freq 50
@@ -239,51 +239,53 @@ int watchdogTimer = 5000;
 //Watch Dog End========================
 
 //ESP 8266=============================
-SoftwareSerial ESP8266(12,13);
+SoftwareSerial ESP8266(12, 13);
+int ESP_times = 0;
+//=====================================
 
 void setup() {
-	Wire.begin();
-	Serial.begin(4800);
-	ss.begin(4800);
+  Wire.begin();
+  Serial.begin(SERIAL_BAUD);
+  ss.begin(GPS_SERIAL);
   ESP8266.begin(ESP_BAUD);
-	max.begin();
-	max.setThermocoupleType(MAX31856_TCTYPE_K);		//Set the type of Thermocouple
-	
-//	  EEPROM.put(IDAddress, device_ID_temp);
-//	  EEPROM.put(k_cal_addr, k_cal_temp);
-	
-	EEPROM.get(IDAddress, device_ID);					//Get Device ID from EEPROM
-	EEPROM.get(k_cal_addr, k_cal);					//Get Thermocouple Calibration Data from EEPROM
-	
-	Serial.print("Device ID = ");
-	Serial.println(device_ID, 2);
-	Serial.print("K Calibrate = ");
-	Serial.println(k_cal, 2);
+  max.begin();
+  max.setThermocoupleType(MAX31856_TCTYPE_K);		//Set the type of Thermocouple
 
-	EC_dry_cali.begin();
-	EC_low_cali.begin();
-	EC_high_cali.begin();
-	pH_4_cali.begin();
-	pH_7_cali.begin();
-	pH_10_cali.begin();
-	k_cali_btn.begin();
-	pinMode(buzzerpin, OUTPUT);
+  //	  EEPROM.put(IDAddress, device_ID_temp);
+  //	  EEPROM.put(k_cal_addr, k_cal_temp);
 
-	Atlas_EC.begin(9600);                	            //set baud rate for the software serial port to 9600
-	//inputstring.reserve(10);                            //set aside some bytes for receiving data from the PC
-	sensorstring.reserve(30);                           //set aside some bytes for receiving data from Atlas Scientific product
+  EEPROM.get(IDAddress, device_ID);					//Get Device ID from EEPROM
+  EEPROM.get(k_cal_addr, k_cal);					//Get Thermocouple Calibration Data from EEPROM
 
-	Atlas_pH.begin(9600);                               //set baud rate for the software serial port to 9600
-	//inputstring_pH.reserve(10);                         //set aside some bytes for receiving data from the PC
-	sensorstring_pH.reserve(30);                        //set aside some bytes for receiving data from Atlas Scientific product
+  Serial.print("Device ID = ");
+  Serial.println(device_ID, 2);
+  Serial.print("K Calibrate = ");
+  Serial.println(k_cal, 2);
 
-	m_tsys01.begin();
+  EC_dry_cali.begin();
+  EC_low_cali.begin();
+  EC_high_cali.begin();
+  pH_4_cali.begin();
+  pH_7_cali.begin();
+  pH_10_cali.begin();
+  k_cali_btn.begin();
+  pinMode(buzzerpin, OUTPUT);
 
-	K_30_Serial.begin(9600);
-//	cln_event_logger();
+  Atlas_EC.begin(9600);                	            //set baud rate for the software serial port to 9600
+  //inputstring.reserve(10);                            //set aside some bytes for receiving data from the PC
+  sensorstring.reserve(30);                           //set aside some bytes for receiving data from Atlas Scientific product
 
-	lcd.init();
-{/*LCD Create Custom Char==============================================================*/
+  Atlas_pH.begin(9600);                               //set baud rate for the software serial port to 9600
+  //inputstring_pH.reserve(10);                         //set aside some bytes for receiving data from the PC
+  sensorstring_pH.reserve(30);                        //set aside some bytes for receiving data from Atlas Scientific product
+
+  m_tsys01.begin();
+
+  K_30_Serial.begin(9600);
+  //	cln_event_logger();
+
+  lcd.init();
+  { /*LCD Create Custom Char==============================================================*/
 
     lcd.createChar(0, EC_Stand);
     lcd.createChar(1, pH_Stand);
@@ -293,74 +295,75 @@ void setup() {
     lcd.createChar(5, k_icon);
     lcd.createChar(6, ATM_icon);
     lcd.createChar(7, RH_icon);
-}
+  }
 
-{ /*Initial LCD Output==========================================================*/
-	lcd.backlight();
+  { /*Initial LCD Output==========================================================*/
+    lcd.backlight();
 
-	lcd.clear();
-	lcd.setCursor(0,0);
-	lcd.print("Multi-Function Water");
-	lcd.setCursor(0,1);
-	lcd.print("Data Collecting Syst");
-	lcd.setCursor(0,3);
-	lcd.print("Device ID = ");
-	lcd.print(device_ID);
-	delay(5000);
-	lcd.clear();
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Multi-Function Water");
+    lcd.setCursor(0, 1);
+    lcd.print("Data Collecting Syst");
+    lcd.setCursor(0, 3);
+    lcd.print("Device ID = ");
+    lcd.print(device_ID);
+    delay(5000);
+    lcd.clear();
 
-	/*Watch Dog Init*/
-	Watchdog.enable(watchdogTimer);
-	
+    /*Watch Dog Init*/
+    Watchdog.enable(watchdogTimer);
+    Watchdog.reset();
+
     /*Start Checking BME280*/
     if (!bme280.init()) {
       Serial.println("BME280 Device error!");
     }
-    
-//    /*Start Checking RTC*/
-//    Serial.println("RTC Checking...");
+
+    //    /*Start Checking RTC*/
+    //    Serial.println("RTC Checking...");
     RTC_check();
-//    /*Start Checking SD Module*/
-//    Serial.print("SD Card Checking.....\t");
+    //    /*Start Checking SD Module*/
+    //    Serial.print("SD Card Checking.....\t");
     SD_checking();
 
-    if(SD_alive && RTC_alive){
-    	Serial.println("SD, RTC Pass. System Start");
+    if (SD_alive && RTC_alive) {
+      Serial.println("SD, RTC Pass. System Start");
     }
-  //  RTC.adjust(DateTime(F(__DATE__), F(__TIME__)));
-}
+      //RTC.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  }
 
-/*Initial Parameter==================================================*/
-	update_time_info();
-	getFilename(filename);
-	File_check_exists();
-	last_day   = day;
-	last_time  = millis();
-	last_time2 = millis();
-	//  lcd_update_last = millis();
-	tsys01_get();					//Get TSYS01 Data								 [TSYS01]				(temperature)
-	measure_BME280();				//Get BME280 Data								 [BME280]				(pressure,humidity)
-	measure_CO2();				//Get CO2 Data									 [CO2_READ]				(valCO2)
-	update_K_temp();				//Get Thermacouple Temperature  				 [Thermocouple]			(K_temperature)
-	send_temperature();			//Set K_Temperature to Atlas EZO and pH			 [Thermocouple]
-	measurement_EC();				//Get Conductivity 								 [Atlas_ECuctivity]		(EC_f,TDS_f,SAL_f,GRAV_f)
-	measurement_pH();				//Get pH Data									 [Atlas_pH]				(pH)
-	LCD_update_main();			//Update LCD Data								 [LCD]
-	do_SD();						//Write Data into SD Card						 [SD_DATA]
-	serial_print_data();			//Print Data Out to The Serial					 [SERIAL_PRINT]
+  /*Initial Parameter==================================================*/
+  update_time_info();
+  getFilename(filename);
+  File_check_exists();
+  last_day   = day;
+  last_time  = millis();
+  last_time2 = millis();
+  //  lcd_update_last = millis();
+  tsys01_get();					//Get TSYS01 Data								 [TSYS01]				(temperature)
+  measure_BME280();				//Get BME280 Data								 [BME280]				(pressure,humidity)
+  measure_CO2();				//Get CO2 Data									 [CO2_READ]				(valCO2)
+  update_K_temp();				//Get Thermacouple Temperature  				 [Thermocouple]			(K_temperature)
+  send_temperature();			//Set K_Temperature to Atlas EZO and pH			 [Thermocouple]
+  measurement_EC();				//Get Conductivity 								 [Atlas_ECuctivity]		(EC_f,TDS_f,SAL_f,GRAV_f)
+  measurement_pH();				//Get pH Data									 [Atlas_pH]				(pH)
+  LCD_update_main();			//Update LCD Data								 [LCD]
+  do_SD();						//Write Data into SD Card						 [SD_DATA]
+  serial_print_data();			//Print Data Out to The Serial					 [SERIAL_PRINT]
 }
 
 void loop() {
-{ /*Reset Watchdog Timer=======================================*/
-	Watchdog.reset();
-}
+  { /*Reset Watchdog Timer=======================================*/
+    Watchdog.reset();
+  }
 
-{ /*Call in Every Loop ====================================================================*/
-    gps_new_get();					//GPS Function									 [GPS_DATA]
+  { /*Call in Every Loop ====================================================================*/
+    //gps_new_get();					//GPS Function									 [GPS_DATA]
     button_action();				//Check weather button is pressed				 [Button]
-}
+  }
 
-{ /*Update By Interval Set in "interval" ==================================================*/
+  { /*Update By Interval Set in "interval" ==================================================*/
     while (millis() - last_time >= interval)
     {
       /*========================*/
@@ -377,21 +380,28 @@ void loop() {
       LCD_update_main();			//Update LCD Data								 [LCD]
       do_SD();						//Write Data into SD Card						 [SD_DATA]
       serial_print_data();			//Print Data Out to The Serial					 [SERIAL_PRINT]
-      upload_ESP();
+
+      ESP_times ++;
+      if(ESP_times == 3 && RTC_alive){
+        upload_ESP();
+        ESP_times = 0;
+      }
+      
     }
-}
-{ /*Update By Interval of 1s ==============================================================*/
+  }
+  { /*Update By Interval of 1s ==============================================================*/
     while (millis() - last_time2 >= 1000)
     {
       /*========================*/
       last_time2 = millis();		//Set Time for Time Action
       /*========================*/
-	  update_time_info();			//Get New Time  								 [RTC]
-//      tsys01_get();					//Get TSYS01 Data								 [TSYS01]				(temperature)
-//      measure_BME280();				//Get BME280 Data								 [BME280]				(pressure,humidity)
-//      update_K_temp();				//Get Thermacouple Temperature  				 [Thermocouple]			(K_temperature)
-//      LCD_update_main();			//Update LCD Data								 [LCD]
+      gps_new_get();          //GPS Function                   [GPS_DATA]
+      update_time_info();			//Get New Time  								 [RTC]
+      //      tsys01_get();					//Get TSYS01 Data								 [TSYS01]				(temperature)
+      //      measure_BME280();				//Get BME280 Data								 [BME280]				(pressure,humidity)
+      //      update_K_temp();				//Get Thermacouple Temperature  				 [Thermocouple]			(K_temperature)
+      //      LCD_update_main();			//Update LCD Data								 [LCD]
 
     }
-}
+  }
 }
