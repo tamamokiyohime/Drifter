@@ -1,4 +1,4 @@
-void serial_print_data(){                      //序列埠輸出資料(日期、tsys01溫度、tsd305溫度、tsd305目標溫度、CO2、緯度、經度、高度)-----------------
+void serial_print_data(){                      //摨��撓�鞈��(����sys01皞怠漲�sd305皞怠漲�sd305�璅澈摨艾�O2�楝摨艾��漲��漲)-----------------
     char serialDATE[8];
     
     sprintf(serialDATE,"%02d/%02d/%02d",year,month,day);
@@ -33,7 +33,7 @@ void serial_print_data(){                      //序列埠輸出資料(日期、
 }
 
 
-void data_serial_out(float datalog, int num){    //序列埠輸出(float用)===================================================
+void data_serial_out(float datalog, int num){    //摨��撓�(float�)===================================================
 	if(datalog == 8888){
 		Serial.print("-----");
 	}
@@ -47,3 +47,4 @@ void data_serial_out(float datalog, int num){    //序列埠輸出(float用)====
 	Serial.print(F("\t"));
 	delay(1);
 }
+

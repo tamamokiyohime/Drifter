@@ -1,8 +1,8 @@
-void measure_CO2(){     //CO2資料更新函式---------------------------------------------------------------------------------------------
+void measure_CO2(){     //CO2鞈���撘�---------------------------------------------------------------------------------------------
   sendRequestment(readCO2);
   valCO2 = getValue(response);
  }
-void sendRequestment(byte packet[]){        //CO2資料更新函式-------------------------------------------------------------------------
+void sendRequestment(byte packet[]){        //CO2鞈���撘�-------------------------------------------------------------------------
   while (!K_30_Serial.available()) //keep sending request until we start to get a response
   {
     K_30_Serial.write(readCO2, 7);
@@ -28,9 +28,10 @@ void sendRequestment(byte packet[]){        //CO2資料更新函式-------------
     response[i] = K_30_Serial.read();
   }
 }
-unsigned long getValue(byte packet[]){      //CO2資料更新函式-------------------------------------------------------------------------
+unsigned long getValue(byte packet[]){      //CO2鞈���撘�-------------------------------------------------------------------------
   int high = packet[3]; //high byte for value is 4th byte in packet in the packet
   int low = packet[4]; //low byte for value is 5th byte in the packet
   unsigned long val = high * 256 + low; //Combine high byte and low byte with this formula to get value
   return val * valMultiplier;
 }
+

@@ -10,7 +10,7 @@ void SD_checking(){
 
 
 
-void do_SD(){                      //序列埠輸出資料(日期、tsys01溫度、tsd305溫度、tsd305目標溫度、CO2、緯度、經度、高度)-----------------
+void do_SD(){                      
 
 	lcd.setCursor(18,0);
 	lcd.print("S");
@@ -71,6 +71,11 @@ void do_SD(){                      //序列埠輸出資料(日期、tsys01溫度
 		waring();
 		SD_alive = false;
 	} 
+	if(EC_dry_btnEvt || EC_high_btnEvt || ph_4_btnEvt || ph_7_btnEvt || ph_10_btnEvt || k_cal_btnEvt){
+		EventLog();
+	}
+		
+	
 //	lcd.setCursor(18,0);
 //	lcd.print(" ");
 }
@@ -96,7 +101,7 @@ void File_check_exists(){               //Check wether there is already the same
   if(!SD.exists(filename)){
     myFile = SD.open(filename, FILE_WRITE);
     myFile.println("Device ID,Date,Time,Temperature,K_Temp,Pressure,Humidity,CO2,flat,flon,GPS_number,GPS_Avalibal,Conductivity,TDS,SAL,GRAV,pH");
-    myFile.println("ID,YY/MM/DD,HH/MM/SS,Celsius,Celsius,Pa,%,ppm,degree,degree,-,-,µS/cm,ppm,PSU,-,-");
+    myFile.println("ID,YY/MM/DD,HH/MM/SS,Celsius,Celsius,Pa,%,ppm,degree,degree,-,-,繕S/cm,ppm,PSU,-,-");
     myFile.close();
   }
 }
@@ -112,3 +117,4 @@ void data_write_in(float datalog,int num){      //Write in float type data into 
 	}
 	myFile.print(",");
 }
+

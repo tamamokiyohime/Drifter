@@ -14,6 +14,7 @@ void button_action(){
 		lcd.setCursor(0,1);
 		lcd.print("                 ");
 		notice();
+		//String infomation = "";
 				
 		switch(btn_command){
 			case 1:
@@ -85,20 +86,21 @@ void button_action(){
 			case 7:
 			K_temperature = max.readThermocoupleTemperature();
 			k_cal = 25.00 - K_temperature;
-			EEPROM.put(k_cal_addr, k_cal);
 			Serial.print("Thermocouple Temperature Calibration, Value = ");
 			Serial.println(k_cal);
+			EEPROM.put(k_cal_addr, k_cal);
+			EEPROM.put(k_cal_addr, k_cal);
 			lcd.setCursor(15,3);
 			lcd.print("-S25.");
 			lcd.setCursor(0,1);
 			lcd.print("K Cal to ");
 			lcd_qFprint(k_cal,2,9,1);
-//			event_write("Cal-k");
+			k_cal_btnEvt = true;
 			break;
 		}
 		delay(50);
-		
 	}
 	btn_command = 0;
 }
+
 

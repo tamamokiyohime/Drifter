@@ -29,6 +29,7 @@ void measurement_EC(){
 	}else{                                             //if the first character in the string is NOT a digit
 	  print_EC_data();                                //then call this function 
 	}
+//	Serial.println(sensorstring);
 	sensorstring = "";                                //clear the string
 	sensor_string_complete = false;                   //reset the flag used to tell if we have received a completed string from the Atlas Scientific product
 	}
@@ -77,4 +78,5 @@ void flush_EC_serial(){
     delay(1);
 	}
 }
+
 

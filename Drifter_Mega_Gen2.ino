@@ -1,11 +1,3 @@
-/*
-   Drifter Mega2560 Version
-   Last Modify 18/12/10
-    Adding:Watch Dog
-   To Test:Watch Dog
-*/
-
-
 
 #include <LiquidCrystal_I2C.h>
 #include <SoftwareSerial.h>
@@ -34,6 +26,10 @@
 /**/#define sample_times 3.000			//Sample Times For Average				/**/
 /*================================================================================*/
 
+#define initial false
+#define device_ID_temp 1
+#define k_cal_temp  0.00f
+
 unsigned long last_time = 0;		//For Timed Action Group 1
 unsigned long last_time2 = 0;		//For Timed Action Group 2
 //unsigned long lcd_update_last = 0;
@@ -57,9 +53,9 @@ static void gps_printout();
 //GPS DATA Parameter END=============================================================================
 
 //K Type Thermocouple Data Parameter=================================================================
-#define MAX31856Select 5								//Max31856 CS pin
+#define MAX31856Select 6							//Max31856 CS pin
 float K_temperature = initial_data;
-Adafruit_MAX31856 max = Adafruit_MAX31856(MAX31856Select);
+Adafruit_MAX31856 max = Adafruit_MAX31856(MAX31856Select, 9, 7, 8);
 //K Type Thermocouple Data Parameter END=============================================================
 
 //Tsys01 Data Parameter==============================================================================
@@ -70,18 +66,14 @@ boolean connected;
 
 //Atlas Conductivity Data Parameter==================================================================
 HardwareSerial &Atlas_EC = Serial2;						//Atlas EC Using UART Port2
-//String  inputstring  = "";								//a string to hold incoming data from the PC
 String  sensorstring = ""; 								//a string to hold the data from the Atlas Scientific product
-//boolean input_string_complete  = false;					//have we received all the data from the PC
 boolean sensor_string_complete = false;					//have we received all the data from the Atlas Scientific product
 float EC_f , TDS_f, SAL_f, GRAV_f;
 //Atlas Conductivity Data Parameter END===============================================================
 
 //Atlas pH Data Parameter=============================================================================
 SoftwareSerial Atlas_pH(10, 11);						//Atlas pH Using pin 10,11
-//String  inputstring_pH  = "";							//a string to hold incoming data from the PC
 String  sensorstring_pH = "";							//a string to hold the data from the Atlas Scientific product
-//boolean input_string_pH_complete  = false;				//have we received all the data from the PC
 boolean sensor_string_pH_complete = false;				//have we received all the data from the Atlas Scientific product
 float pH;
 //Atlas pH Data Parameter END=========================================================================
@@ -117,24 +109,22 @@ float pressure_in_atm;
 //BME280 Data Parameter END===========================================================================
 
 //Button Data Parameter===============================================================================
-Button EC_dry_cali   = Button(24);
-Button EC_low_cali   = Button(25);
-Button EC_high_cali  = Button(26);
-Button pH_4_cali	 = Button(27);
-Button pH_7_cali	 = Button(28);
-Button pH_10_cali	 = Button(29);
-Button k_cali_btn	 = Button(30);
+Button EC_dry_cali   = Button(24);		bool EC_dry_btnEvt = false;
+Button EC_low_cali   = Button(25);		bool EC_low_btnEvt = false;
+Button EC_high_cali  = Button(26);		bool EC_high_btnEvt = false;
+Button pH_4_cali	 = Button(27);		bool ph_4_btnEvt = false;
+Button pH_7_cali	 = Button(28);		bool ph_7_btnEvt = false;
+Button pH_10_cali	 = Button(29);		bool ph_10_btnEvt = false;
+Button k_cali_btn	 = Button(30);		bool k_cal_btnEvt = false;
 int btn_command = 0;
 //Button Data Parameter END===========================================================================
 
 
 //EEPROM Data Parameter================================================================================
-int device_ID = 0 ;
-float k_cal = 0.00f;
 int IDAddress = 0;
+int device_ID = 0 ;
 int k_cal_addr = sizeof(int);
-//int device_ID_temp = 1 ;
-//float k_cal_temp = 0.30;
+float k_cal = 0.00;
 //EEPROM Data Parameter END============================================================================
 
 //LCD Data Parameter===================================================================================
@@ -142,86 +132,14 @@ LiquidCrystal_I2C lcd(LCD_I2C_ADDRESS, 21, 4);
 boolean lcd_backlight_status = false;
 boolean RTC_alive = true;
 
-byte EC_Stand[8] = {
-  0b11100,
-  0b10000,
-  0b11100,
-  0b10000,
-  0b11100,
-  0b00111,
-  0b00100,
-  0b00111
-};
-byte pH_Stand[8] = {
-  0b11100,
-  0b10100,
-  0b11100,
-  0b10000,
-  0b10101,
-  0b00111,
-  0b00101,
-  0b00101
-};
-byte SD_Fatal[8] = {
-  0b00101,
-  0b00010,
-  0b00101,
-  0b01100,
-  0b10000,
-  0b01000,
-  0b00100,
-  0b11000
-};
-byte RTC_Fatal[8] = {
-  0b00101,
-  0b00010,
-  0b00101,
-  0b00000,
-  0b11100,
-  0b01000,
-  0b01000,
-  0b01000
-};
-byte tsys01_icon[8] = {
-  0b00001,
-  0b11111,
-  0b00001,
-  0b00000,
-  0b10010,
-  0b10101,
-  0b10101,
-  0b01001
-};
-byte k_icon[8] = {
-  0b11111,
-  0b00100,
-  0b01010,
-  0b10001,
-  0b00000,
-  0b00001,
-  0b11111,
-  0b00001
-};
-byte ATM_icon[8] = {
-  0b11110,
-  0b01001,
-  0b01001,
-  0b11110,
-  0b00000,
-  0b00001,
-  0b11111,
-  0b00001
-};
-byte RH_icon[8] = {
-  0b11111,
-  0b00101,
-  0b01101,
-  0b10010,
-  0b00000,
-  0b11111,
-  0b00100,
-  0b11111
-};
+byte EC_Stand[8]	= {  0b11100,  0b10000,  0b11100,  0b10000,  0b11100,  0b00111,  0b00100,  0b00111};
+byte pH_Stand[8]	= {  0b11100,  0b10100,  0b11100,  0b10000,  0b10101,  0b00111,  0b00101,  0b00101};
+byte SD_Fatal[8]	= {  0b00101,  0b00010,  0b00101,  0b01100,  0b10000,  0b01000,  0b00100,  0b11000};
+byte RTC_Fatal[8]	= {  0b00101,  0b00010,  0b00101,  0b00000,  0b11100,  0b01000,  0b01000,  0b01000};
+byte tsys01_icon[8]	= {  0b00001,  0b11111,  0b00001,  0b00000,  0b10010,  0b10101,  0b10101,  0b01001};
+byte k_icon[8]		= {  0b11111,  0b00100,  0b01010,  0b10001,  0b00000,  0b00001,  0b11111,  0b00001};
+byte ATM_icon[8]	= {  0b11110,  0b01001,  0b01001,  0b11110,  0b00000,  0b00001,  0b11111,  0b00001};
+byte RH_icon[8]		= {  0b11111,  0b00101,  0b01101,  0b10010,  0b00000,  0b11111,  0b00100,  0b11111};
 //LCD Data Parameter END===============================================================================
 
 
@@ -240,6 +158,7 @@ int watchdogTimer = 5000;
 
 //ESP 8266=============================
 SoftwareSerial ESP8266(12, 13);
+//int esp_RST_pin = 12;
 int ESP_times = 0;
 //=====================================
 
@@ -247,18 +166,25 @@ void setup() {
   Wire.begin();
   Serial.begin(SERIAL_BAUD);
   ss.begin(GPS_SERIAL);
-  ESP8266.begin(ESP_BAUD);
   max.begin();
+  ESP8266.begin(ESP_BAUD);
   max.setThermocoupleType(MAX31856_TCTYPE_K);		//Set the type of Thermocouple
 
-  //	  EEPROM.put(IDAddress, device_ID_temp);
-  //	  EEPROM.put(k_cal_addr, k_cal_temp);
+  if (initial) {
+    EEPROM.put(IDAddress, device_ID_temp);
+    EEPROM.put(k_cal_addr, k_cal_temp);
+    RTC.adjust(DateTime(F(__DATE__), F(__TIME__)));
+  	Atlas_EC.print("OK,0\r");
+  	Atlas_pH.print("OK,0\r");
+    Atlas_EC.print("C,0\r");
+    Atlas_pH.print("C,0\r");
+  }
 
   EEPROM.get(IDAddress, device_ID);					//Get Device ID from EEPROM
   EEPROM.get(k_cal_addr, k_cal);					//Get Thermocouple Calibration Data from EEPROM
 
   Serial.print("Device ID = ");
-  Serial.println(device_ID, 2);
+  Serial.println(device_ID, DEC);
   Serial.print("K Calibrate = ");
   Serial.println(k_cal, 2);
 
@@ -270,19 +196,19 @@ void setup() {
   pH_10_cali.begin();
   k_cali_btn.begin();
   pinMode(buzzerpin, OUTPUT);
+  //pinMode(esp_RST_pin, OUTPUT);
+  
 
   Atlas_EC.begin(9600);                	            //set baud rate for the software serial port to 9600
-  //inputstring.reserve(10);                            //set aside some bytes for receiving data from the PC
   sensorstring.reserve(30);                           //set aside some bytes for receiving data from Atlas Scientific product
 
   Atlas_pH.begin(9600);                               //set baud rate for the software serial port to 9600
-  //inputstring_pH.reserve(10);                         //set aside some bytes for receiving data from the PC
   sensorstring_pH.reserve(30);                        //set aside some bytes for receiving data from Atlas Scientific product
 
+  
   m_tsys01.begin();
 
   K_30_Serial.begin(9600);
-  //	cln_event_logger();
 
   lcd.init();
   { /*LCD Create Custom Char==============================================================*/
@@ -302,18 +228,19 @@ void setup() {
 
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.print("Multi-Function Water");
+    lcd.print("Biochemistry    Buoy");
     lcd.setCursor(0, 1);
     lcd.print("Data Collecting Syst");
+    lcd.setCursor(0, 2);
+    lcd.print("V2.3.0-Dev");
     lcd.setCursor(0, 3);
     lcd.print("Device ID = ");
     lcd.print(device_ID);
-    delay(5000);
+    delay(2000);
     lcd.clear();
 
     /*Watch Dog Init*/
-    Watchdog.enable(watchdogTimer);
-    Watchdog.reset();
+
 
     /*Start Checking BME280*/
     if (!bme280.init()) {
@@ -330,8 +257,10 @@ void setup() {
     if (SD_alive && RTC_alive) {
       Serial.println("SD, RTC Pass. System Start");
     }
-      //RTC.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    //RTC.adjust(DateTime(F(__DATE__), F(__TIME__)));
   }
+  Watchdog.enable(watchdogTimer);
+  Watchdog.reset();
 
   /*Initial Parameter==================================================*/
   update_time_info();
@@ -370,11 +299,11 @@ void loop() {
       last_time  = millis();		//Set Time for Time Action
       last_time2 = millis();		//Set Time for Time Action
       /*========================*/
+      send_temperature();			//Set K_Temperature to Atlas EZO and pH			 [Thermocouple]
       tsys01_get();					//Get TSYS01 Data								 [TSYS01]				(temperature)
       measure_BME280();				//Get BME280 Data								 [BME280]				(pressure,humidity)
       measure_CO2();				//Get CO2 Data									 [CO2_READ]				(valCO2)
       update_K_temp();				//Get Thermacouple Temperature  				 [Thermocouple]			(K_temperature)
-      send_temperature();			//Set K_Temperature to Atlas EZO and pH			 [Thermocouple]
       measurement_EC();				//Get Conductivity 								 [Atlas_ECuctivity]		(EC_f,TDS_f,SAL_f,GRAV_f)
       measurement_pH();				//Get pH Data									 [Atlas_pH]				(pH)
       LCD_update_main();			//Update LCD Data								 [LCD]
@@ -382,11 +311,11 @@ void loop() {
       serial_print_data();			//Print Data Out to The Serial					 [SERIAL_PRINT]
 
       ESP_times ++;
-      if(ESP_times == 3 && RTC_alive){
+      if (ESP_times == 3) {
         upload_ESP();
         ESP_times = 0;
       }
-      
+
     }
   }
   { /*Update By Interval of 1s ==============================================================*/
@@ -397,11 +326,7 @@ void loop() {
       /*========================*/
       gps_new_get();          //GPS Function                   [GPS_DATA]
       update_time_info();			//Get New Time  								 [RTC]
-      //      tsys01_get();					//Get TSYS01 Data								 [TSYS01]				(temperature)
-      //      measure_BME280();				//Get BME280 Data								 [BME280]				(pressure,humidity)
-      //      update_K_temp();				//Get Thermacouple Temperature  				 [Thermocouple]			(K_temperature)
-      //      LCD_update_main();			//Update LCD Data								 [LCD]
-
     }
   }
 }
+
