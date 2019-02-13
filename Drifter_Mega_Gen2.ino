@@ -169,16 +169,40 @@ void setup() {
   max.begin();
   ESP8266.begin(ESP_BAUD);
   max.setThermocoupleType(MAX31856_TCTYPE_K);		//Set the type of Thermocouple
+  Atlas_EC.begin(9600);                	            //set baud rate for the software serial port to 9600
+  sensorstring.reserve(30);                           //set aside some bytes for receiving data from Atlas Scientific product
+
+  Atlas_pH.begin(9600);                               //set baud rate for the software serial port to 9600
+  sensorstring_pH.reserve(30);                        //set aside some bytes for receiving data from Atlas Scientific product
+
+  
 
   if (initial) {
+  	Serial.println("Waring In Initial Status");
     EEPROM.put(IDAddress, device_ID_temp);
     EEPROM.put(k_cal_addr, k_cal_temp);
     RTC.adjust(DateTime(F(__DATE__), F(__TIME__)));
-  	Atlas_EC.print("OK,0\r");
-  	Atlas_pH.print("OK,0\r");
-    Atlas_EC.print("C,0\r");
-    Atlas_pH.print("C,0\r");
+    Atlas_EC.print("OK,0\r");
+	delay(10);
+	Atlas_pH.print("OK,0\r");
+	delay(10);
+	Atlas_EC.print("C,0\r");
+	delay(10);
+	Atlas_pH.print("C,0\r");
+	delay(10);
+	Atlas_EC.print("O,EC,1\r");
+	delay(10);
+	Atlas_EC.print("O,TDS,1\r");
+	delay(10);
+	Atlas_EC.print("O,S,1\r");
+	delay(10);
+	Atlas_EC.print("O,SG,1\r");
+  	tone(buzzerpin,20,50);
+  	tone(buzzerpin,20,50);
+  	tone(buzzerpin,20,50);
   }
+
+  
 
   EEPROM.get(IDAddress, device_ID);					//Get Device ID from EEPROM
   EEPROM.get(k_cal_addr, k_cal);					//Get Thermocouple Calibration Data from EEPROM
@@ -198,12 +222,6 @@ void setup() {
   pinMode(buzzerpin, OUTPUT);
   //pinMode(esp_RST_pin, OUTPUT);
   
-
-  Atlas_EC.begin(9600);                	            //set baud rate for the software serial port to 9600
-  sensorstring.reserve(30);                           //set aside some bytes for receiving data from Atlas Scientific product
-
-  Atlas_pH.begin(9600);                               //set baud rate for the software serial port to 9600
-  sensorstring_pH.reserve(30);                        //set aside some bytes for receiving data from Atlas Scientific product
 
   
   m_tsys01.begin();
@@ -232,7 +250,7 @@ void setup() {
     lcd.setCursor(0, 1);
     lcd.print("Data Collecting Syst");
     lcd.setCursor(0, 2);
-    lcd.print("V2.3.0-Dev");
+    lcd.print("V2.3.1");
     lcd.setCursor(0, 3);
     lcd.print("Device ID = ");
     lcd.print(device_ID);
