@@ -182,6 +182,10 @@ void setup() {
     EEPROM.put(IDAddress, device_ID_temp);
     EEPROM.put(k_cal_addr, k_cal_temp);
     RTC.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    Atlas_EC.print("L,0\r");
+	delay(10);
+	Atlas_pH.print("L,0\r");
+	delay(10);
     Atlas_EC.print("OK,0\r");
 	delay(10);
 	Atlas_pH.print("OK,0\r");
@@ -197,8 +201,6 @@ void setup() {
 	Atlas_EC.print("O,S,1\r");
 	delay(10);
 	Atlas_EC.print("O,SG,1\r");
-  	tone(buzzerpin,20,50);
-  	tone(buzzerpin,20,50);
   	tone(buzzerpin,20,50);
   }
 
